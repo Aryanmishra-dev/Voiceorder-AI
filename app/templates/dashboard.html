@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sweet Moments — Cake Orders Dashboard</title>
+  <meta name="description" content="Live order dashboard for Sweet Moments cake shop. View and manage WhatsApp orders received via AI bot.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/htmx.org@1.9.12"></script>
+  <style>
+    /* ── Reset & Variables ──────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-body: #0a0a0f;
+      --bg-card: rgba(255, 255, 255, 0.04);
+      --bg-card-hover: rgba(255, 255, 255, 0.07);
+      --bg-glass: rgba(255, 255, 255, 0.06);
+      --bg-stat: rgba(255, 255, 255, 0.03);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.15);
+      --text-primary: #f0f0f5;
+      --text-secondary: #8a8a9a;
+      --text-tertiary: #5a5a6e;
+      --accent-green: #34d399;
+      --accent-green-dim: rgba(52, 211, 153, 0.12);
+      --accent-emerald: #10b981;
+      --accent-purple: #a78bfa;
+      --accent-purple-dim: rgba(167, 139, 250, 0.12);
+      --accent-amber: #fbbf24;
+      --accent-amber-dim: rgba(251, 191, 36, 0.10);
+      --accent-rose: #fb7185;
+      --accent-rose-dim: rgba(251, 113, 133, 0.10);
+      --gradient-hero: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #0f172a 100%);
+      --gradient-accent: linear-gradient(135deg, #34d399, #a78bfa);
+      --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      --shadow-hover: 0 8px 25px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
+      --radius-xl: 20px;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* ── Animated background ───────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background:
+        radial-gradient(ellipse 600px 400px at 20% 20%, rgba(52, 211, 153, 0.06), transparent),
+        radial-gradient(ellipse 500px 350px at 80% 80%, rgba(167, 139, 250, 0.05), transparent),
+        radial-gradient(ellipse 400px 300px at 50% 50%, rgba(251, 191, 36, 0.03), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Header ────────────────────────────────────────────── */
+    header {
+      position: relative;
+      background: var(--gradient-hero);
+      padding: 2rem 2rem 1.8rem;
+      border-bottom: 1px solid var(--border-subtle);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      top: -50%; right: -10%;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(52, 211, 153, 0.1), transparent 70%);
+      animation: headerGlow 8s ease-in-out infinite alternate;
+    }
+
+    @keyframes headerGlow {
+      0% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+      100% { transform: translate(-30px, 20px) scale(1.2); opacity: 0.8; }
+    }
+
+    .header-content {
+      position: relative;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .header-left { z-index: 1; }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--accent-green-dim);
+      color: var(--accent-green);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .header-badge::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    header h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    header h1 span {
+      background: var(--gradient-accent);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-sub {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-weight: 400;
+    }
+
+    .header-right {
+      z-index: 1;
+      text-align: right;
+    }
+
+    .live-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-tertiary);
+      background: var(--bg-glass);
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border-subtle);
+      backdrop-filter: blur(10px);
+    }
+
+    .live-dot {
+      width: 8px; height: 8px;
+      background: var(--accent-green);
+      border-radius: 50%;
+      box-shadow: 0 0 8px rgba(52, 211, 153, 0.5);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    /* ── Main Container ────────────────────────────────────── */
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem 3rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Stats Grid ────────────────────────────────────────── */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 2rem;
+    }
+
+    .stat {
+      background: var(--bg-stat);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+
+    .stat:nth-child(1)::before { background: var(--gradient-accent); }
+    .stat:nth-child(2)::before { background: linear-gradient(90deg, var(--accent-purple), var(--accent-amber)); }
+    .stat:nth-child(3)::before { background: linear-gradient(90deg, var(--accent-amber), var(--accent-rose)); }
+
+    .stat:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    .stat-num {
+      font-size: 2rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+
+    .stat:nth-child(1) .stat-num { color: var(--accent-green); }
+    .stat:nth-child(2) .stat-num { color: var(--accent-purple); }
+    .stat:nth-child(3) .stat-num { color: var(--accent-amber); }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    /* ── Refresh bar ───────────────────────────────────────── */
+    .refresh-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+      padding: 0 4px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      letter-spacing: -0.01em;
+    }
+
+    .refresh-text {
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .refresh-text svg {
+      width: 12px; height: 12px;
+      animation: spin 4s linear infinite;
+      opacity: 0.5;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* ── Order Cards ───────────────────────────────────────── */
+    .orders { display: grid; gap: 12px; }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 1.4rem 1.6rem;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      backdrop-filter: blur(10px);
+      animation: cardSlideIn 0.4s ease-out both;
+    }
+
+    .card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-hover);
+    }
+
+    @keyframes cardSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card:nth-child(1) { animation-delay: 0ms; }
+    .card:nth-child(2) { animation-delay: 60ms; }
+    .card:nth-child(3) { animation-delay: 120ms; }
+    .card:nth-child(4) { animation-delay: 180ms; }
+    .card:nth-child(5) { animation-delay: 240ms; }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+    }
+
+    .customer-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+
+    .phone-number {
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+      font-weight: 400;
+      margin-top: 2px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+
+    .order-time {
+      font-size: 0.72rem;
+      color: var(--text-tertiary);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-top: 6px;
+      background: var(--accent-green-dim);
+      color: var(--accent-green);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+    }
+
+    .badge::before {
+      content: '●';
+      font-size: 7px;
+    }
+
+    /* ── Order Details Grid ─────────────────────────────────── */
+    .order-details {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px 16px;
+    }
+
+    .detail {
+      padding: 10px 12px;
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: var(--radius-sm);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: all 0.2s ease;
+    }
+
+    .detail:hover {
+      background: rgba(255, 255, 255, 0.04);
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .detail-label {
+      font-size: 0.68rem;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+
+    .detail-value {
+      font-size: 0.88rem;
+      color: var(--text-primary);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .detail-value.empty {
+      color: var(--text-tertiary);
+      font-style: italic;
+      font-weight: 400;
+    }
+
+    .detail-full {
+      grid-column: span 3;
+    }
+
+    /* ── Cake type icon badges ─────────────────────────────── */
+    .cake-icon {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cake-icon::before {
+      content: '🎂';
+      font-size: 14px;
+    }
+
+    /* ── Empty State ───────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-xl);
+      background: var(--bg-card);
+    }
+
+    .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      opacity: 0.6;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    .empty-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .empty-desc {
+      font-size: 0.82rem;
+      color: var(--text-tertiary);
+      line-height: 1.6;
+      max-width: 380px;
+      margin: 0 auto;
+    }
+
+    /* ── Responsive ────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      header { padding: 1.5rem 1rem; }
+      .header-content { flex-direction: column; align-items: flex-start; gap: 12px; }
+      .header-right { align-self: flex-start; }
+      .container { padding: 1rem; }
+      .stats { grid-template-columns: 1fr; }
+      .order-details { grid-template-columns: 1fr 1fr; }
+      .detail-full { grid-column: span 2; }
+      .card { padding: 1.1rem 1.2rem; }
+    }
+
+    /* ── Action Buttons & Status ───────────────────────────── */
+    .card-actions {
+      display: flex; gap: 10px; margin-top: 16px; padding-top: 16px;
+      border-top: 1px solid var(--border-subtle); justify-content: flex-end;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-secondary); padding: 6px 14px; border-radius: var(--radius-sm);
+      font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex;
+      align-items: center; gap: 6px; transition: all 0.2s ease;
+    }
+    .btn:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+    .btn-confirm:hover { border-color: var(--accent-purple); color: var(--accent-purple); background: var(--accent-purple-dim); }
+    .btn-complete:hover { border-color: var(--accent-green); color: var(--accent-green); background: var(--accent-green-dim); }
+    .btn-drop:hover { border-color: var(--accent-rose); color: var(--accent-rose); background: var(--accent-rose-dim); }
+
+    .badge-confirmed { color: var(--accent-purple); background: var(--accent-purple-dim); border-color: rgba(167, 139, 250, 0.2); }
+    .badge-confirmed::before { background: var(--accent-purple) !important; }
+    .badge-completed { color: #8a8a9a; background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.1); }
+    .badge-completed::before { background: #8a8a9a !important; }
+    .badge-dropped { color: var(--accent-rose); background: var(--accent-rose-dim); border-color: rgba(251, 113, 133, 0.2); }
+    .badge-dropped::before { background: var(--accent-rose) !important; }
+    
+    .card.is-dropped { opacity: 0.5; filter: grayscale(1); box-shadow: none; pointer-events: auto; }
+    .card.is-completed { opacity: 0.7; }
+
+    @media (max-width: 480px) {
+      .order-details { grid-template-columns: 1fr; }
+      .detail-full { grid-column: span 1; }
+    }
+
+    /* ── Scrollbar ──────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-content">
+      <div class="header-left">
+        <div class="header-badge">
+          WhatsApp Bot Active
+        </div>
+        <h1><span>Sweet Moments</span> — Cake Orders</h1>
+        <p class="header-sub">AI-powered WhatsApp orders • Real-time dashboard</p>
+      </div>
+      <div class="header-right">
+        <div class="live-indicator">
+          <span class="live-dot"></span>
+          Live • Auto-refreshing
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container"
+       hx-get="/dashboard"
+       hx-trigger="every 20s, orderStatusChanged from:body"
+       hx-swap="innerHTML"
+       hx-select=".container"
+       hx-select-oob="true">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat" id="stat-total">
+        <div class="stat-num">{{ orders | length }}</div>
+        <div class="stat-label">Total Orders</div>
+      </div>
+      <div class="stat" id="stat-delivery">
+        <div class="stat-num">
+          {{ orders | selectattr("delivery_date") | list | length }}
+        </div>
+        <div class="stat-label">With Delivery Date</div>
+      </div>
+      <div class="stat" id="stat-latest">
+        <div class="stat-num">
+          {{ orders[:1][0].created_at.strftime("%d %b") if orders else "—" }}
+        </div>
+        <div class="stat-label">Latest Order</div>
+      </div>
+    </div>
+
+    <!-- Section header -->
+    <div class="refresh-bar">
+      <span class="section-title">Recent Orders</span>
+      <span class="refresh-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 1 1-6.219-8.56" stroke-linecap="round"/>
+          <polyline points="21 3 21 9 15 9" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Refreshes every 20s
+      </span>
+    </div>
+
+    <!-- Orders list -->
+    <div class="orders">
+      {% if not orders %}
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🍰</div>
+        <div class="empty-title">No orders yet</div>
+        <div class="empty-desc">
+          Send a WhatsApp message to your sandbox number to place your first order. Orders will appear here in real time.
+        </div>
+      </div>
+      {% endif %}
+
+      {% for order in orders %}
+      <div class="card {% if order.status == 'dropped' %}is-dropped{% elif order.status == 'completed' %}is-completed{% endif %}" id="order-{{ order.id }}">
+        <div class="card-header">
+          <div>
+            <div class="customer-name">
+              {% if order.customer_name %}
+                {{ order.customer_name }}
+              {% else %}
+                Unknown Customer
+              {% endif %}
+            </div>
+            <div class="phone-number">
+              {{ order.phone | replace("whatsapp:+", "+") }}
+            </div>
+          </div>
+          <div>
+            <div class="order-time">
+              {{ order.created_at.strftime("%d %b %Y") if order.created_at else "" }}
+              <br>
+              {{ order.created_at.strftime("%I:%M %p") if order.created_at else "" }}
+            <div class="badge {% if order.status == 'confirmed' %}badge-confirmed{% elif order.status == 'completed' %}badge-completed{% elif order.status == 'dropped' %}badge-dropped{% endif %}">
+              {{ "New Order" if order.status == "new" else order.status | title }}
+            </div>
+          </div>
+        </div>
+
+        <div class="order-details">
+          <div class="detail">
+            <div class="detail-label">Cake Type</div>
+            <div class="detail-value {% if not order.cake_type %}empty{% endif %}">
+              {% if order.cake_type %}
+                <span class="cake-icon">{{ order.cake_type }}</span>
+              {% else %}
+                Not specified
+              {% endif %}
+            </div>
+          </div>
+          <div class="detail">
+            <div class="detail-label">Flavour</div>
+            <div class="detail-value {% if not order.flavour %}empty{% endif %}">
+              {{ order.flavour or "Not specified" }}
+            </div>
+          </div>
+          <div class="detail">
+            <div class="detail-label">Size</div>
+            <div class="detail-value {% if not order.size_kg %}empty{% endif %}">
+              {{ order.size_kg or "Not specified" }}
+            </div>
+          </div>
+          <div class="detail">
+            <div class="detail-label">Delivery Date</div>
+            <div class="detail-value {% if not order.delivery_date %}empty{% endif %}">
+              {{ order.delivery_date or "Not specified" }}
+            </div>
+          </div>
+          <div class="detail detail-full">
+            <div class="detail-label">Delivery Address</div>
+            <div class="detail-value {% if not order.delivery_address %}empty{% endif %}">
+              {{ order.delivery_address or "Not specified" }}
+            </div>
+          </div>
+          {% if order.special_notes %}
+          <div class="detail detail-full">
+            <div class="detail-label">Special Notes</div>
+            <div class="detail-value">{{ order.special_notes }}</div>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if order.status != 'dropped' and order.status != 'completed' %}
+        <div class="card-actions">
+          {% if order.status == 'new' %}
+          <button class="btn btn-confirm" hx-post="/order/{{ order.id }}/status" hx-vals='{"status": "confirmed"}'>✅ Confirm</button>
+          {% endif %}
+          {% if order.status == 'confirmed' %}
+          <button class="btn btn-complete" hx-post="/order/{{ order.id }}/status" hx-vals='{"status": "completed"}'>🎂 Mark Completed</button>
+          {% endif %}
+          <button class="btn btn-drop" hx-post="/order/{{ order.id }}/status" hx-vals='{"status": "dropped"}' hx-confirm="Are you sure you want to drop this order?">❌ Drop</button>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+</body>
+</html>
