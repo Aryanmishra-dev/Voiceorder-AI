@@ -1,8 +1,20 @@
 """Pydantic schemas for request/response validation."""
-from pydantic import BaseModel, Field, validator
+from enum import Enum
+from pydantic import ConfigDict
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
+
+
+class OrderStatus(str, Enum):
+    """Allowed order statuses."""
+
+    new = "new"
+    confirmed = "confirmed"
+    in_progress = "in_progress"
+    completed = "completed"
+    cancelled = "cancelled"
 
 
 class OrderResponse(BaseModel):
@@ -12,27 +24,26 @@ class OrderResponse(BaseModel):
     customer_name: Optional[str] = None
     cake_type: Optional[str] = None
     flavour: Optional[str] = None
-    size_kg: Optional[str] = None
+    size_kg: Optional[float] = None
     delivery_date: Optional[str] = None
     delivery_address: Optional[str] = None
     special_notes: Optional[str] = None
-    status: str = "new"
+    status: OrderStatus = OrderStatus.new
     created_at: datetime
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class OrderStatusUpdate(BaseModel):
     """Schema for updating order status."""
-    status: str = Field(..., min_length=1, max_length=50)
-    
-    @validator('status')
-    def status_must_be_valid(cls, v):
-        valid_statuses = ['new', 'confirmed', 'in_progress', 'completed', 'cancelled']
-        if v.lower() not in valid_statuses:
-            raise ValueError(f'Status must be one of {valid_statuses}')
-        return v.lower()
+    status: OrderStatus = Field(...)
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def normalize_status(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip().lower()
+        return value
 
 
 class ErrorResponse(BaseModel):

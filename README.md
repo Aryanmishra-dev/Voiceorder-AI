@@ -1,144 +1,87 @@
-# Happy bakerss — AI WhatsApp Cake Ordering Bot
+# AI BOT SERVICE
 
-An AI-powered WhatsApp bot that takes cake orders through natural conversation and displays them on a live dashboard.
+AI-powered WhatsApp ordering service for cake businesses. It handles customer chat, extracts order details, stores orders, and provides a protected admin dashboard.
 
-**Tech:** Python, FastAPI, PostgreSQL, GPT-4o-mini, Twilio, HTMX
+## Highlights
 
----
+- FastAPI backend with async SQLAlchemy
+- WhatsApp webhook integration via Twilio
+- LLM-powered conversation and order extraction
+- Protected admin dashboard and order APIs
+- Security controls: auth, webhook validation, rate limiting, trusted hosts, CORS, and security headers
+- Test suite with coverage and dependency auditing
 
-## Features
+## Quick Start (Docker)
 
-- Natural language conversation with GPT-4o-mini
-- Automatic order data extraction
-- Live HTMX dashboard with auto-refresh
-- PostgreSQL database with full chat history
-- Rate limiting and webhook validation
-- Docker-ready with tests
+1. Create your environment file:
 
----
+```bash
+cp .env.example .env
+```
 
-## Quick Start
+2. Update required values in `.env`:
 
-### Requirements
-- Docker Desktop
-- Ngrok (for local testing)
-- OpenRouter/OpenAI API Key
-- Twilio account
+```env
+OPENAI_API_KEY=your-openai-or-openrouter-key
+TWILIO_ACCOUNT_SID=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_AUTH_TOKEN=xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
+ADMIN_API_KEY=replace-with-long-random-api-key
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=replace-with-strong-password
+```
 
-### Setup
+3. Start services:
 
-1. Clone and navigate to directory
-2. Copy `.env.example` to `.env` and fill in credentials:
-   ```
-   DATABASE_URL=postgresql+asyncpg://postgres:password@db:5432/cakebot
-   OPENAI_API_KEY=your-key
-   TWILIO_ACCOUNT_SID=your-sid
-   TWILIO_AUTH_TOKEN=your-token
-   TWILIO_WHATSAPP_NUMBER=whatsapp:+14155238886
-   ```
+```bash
+docker compose up --build -d
+```
 
-3. Start server:
-   ```bash
-   docker compose up --build -d
-   ```
+4. Verify:
 
-4. Check health:
-   ```bash
-   curl http://localhost:8000/health
-   ```
+```bash
+curl http://localhost:8000/health
+```
 
-5. View dashboard:
-   ```bash
-   open http://localhost:8000/dashboard
-   ```
+5. Open dashboard:
 
----
+```text
+http://localhost:8000/dashboard
+```
 
-## API Endpoints
+## Authentication
 
-| Endpoint | Method | Purpose |
-|----------|--------|---------|
-| `/webhook/whatsapp` | POST | Receive WhatsApp messages |
+Protected routes require either:
+
+- `X-API-Key: <ADMIN_API_KEY>`
+- HTTP Basic auth using `ADMIN_USERNAME` and `ADMIN_PASSWORD`
+
+Protected routes:
+
+- `/dashboard`
+- `/api/v1/orders`
+- `/api/v1/order/{order_id}/status`
+- `/order/{order_id}/status`
+
+## API Surface
+
+| Endpoint | Method | Description |
+|---|---|---|
 | `/health` | GET | Health check |
-| `/dashboard` | GET | Live order dashboard |
-| `/api/v1/orders` | GET | List orders with pagination |
-| `/api/v1/orders/{id}` | GET | Get order details |
-| `/api/v1/orders/{id}` | PUT | Update order status |
+| `/webhook/whatsapp` | POST | Twilio webhook receiver |
+| `/dashboard` | GET | Admin dashboard |
+| `/api/v1/orders` | GET | Paginated order list |
+| `/api/v1/order/{order_id}/status` | POST | Update order status (JSON API) |
+| `/order/{order_id}/status` | POST | Update order status (HTMX form) |
 
----
-
-## Project Structure
-
-```
-app/
-├── main.py           # FastAPI app & endpoints
-├── bot.py            # Chat logic
-├── config.py         # Configuration
-├── database.py       # Database setup
-├── models.py         # ORM models
-├── schemas.py        # Validation
-├── security.py       # Rate limiting & validation
-└── templates/
-    └── dashboard.html
-
-tests/
-├── test_main.py
-├── test_bot.py
-├── test_security.py
-├── test_schemas.py
-└── conftest.py
-```
-
----
-
-## Testing
+## Development Checks
 
 ```bash
-# Run all tests
-pytest -v
-
-# Run with coverage
-pytest --cov=app --cov-report=html
+pytest -q
+python -m pip_audit -r requirements.txt
 ```
-
----
-
-## Connect to WhatsApp
-
-1. Start ngrok tunnel:
-   ```bash
-   ngrok http 8000
-   ```
-
-2. Add webhook URL to Twilio:
-   ```
-   https://your-ngrok-url.app/webhook/whatsapp
-   ```
-
-3. Join Twilio sandbox and send a test message
-
-4. Orders appear on dashboard at `http://localhost:8000/dashboard`
-
----
-
-## Database
-
-```bash
-# Access database
-docker compose exec db psql -U postgres -d cakebot
-
-# Backup
-docker compose exec db pg_dump -U postgres cakebot > backup.sql
-
-# Restore
-docker compose exec -T db psql -U postgres cakebot < backup.sql
-```
-
----
 
 ## License
 
-MIT License - Built by Happy bakerss
-
-For detailed documentation, see SECURITY_AUDIT.md and DEPLOYMENT.md
+MIT
 

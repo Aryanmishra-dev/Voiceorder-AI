@@ -1,5 +1,5 @@
 """SQLAlchemy ORM models for the application."""
-from sqlalchemy import Column, String, Text, DateTime, JSON, Float, Index
+from sqlalchemy import CheckConstraint, Column, DateTime, Float, Index, JSON, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
 import uuid
@@ -19,7 +19,7 @@ class Conversation(Base):
     phone = Column(String(30), primary_key=True)  # whatsapp:+919876543210
     history = Column(JSON, default=list, nullable=False)  # list of {role, content}
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
 
 class Order(Base):
@@ -32,6 +32,10 @@ class Order(Base):
         Index('idx_orders_status', 'status'),
         Index('idx_orders_created_at', 'created_at'),
         Index('idx_orders_customer_name', 'customer_name'),
+        CheckConstraint(
+            "status IN ('new', 'confirmed', 'in_progress', 'completed', 'cancelled')",
+            name='ck_orders_status',
+        ),
     )
     
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -46,7 +50,7 @@ class Order(Base):
     full_transcript = Column(Text, nullable=True)  # Full conversation for audit trail
     status = Column(String(20), default="new", nullable=False)  # new, confirmed, in_progress, completed, cancelled
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
     
     def __repr__(self) -> str:
         return f"<Order {self.id} - {self.customer_name} - {self.status}>"

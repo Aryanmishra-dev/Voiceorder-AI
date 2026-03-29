@@ -1,7 +1,9 @@
 """Tests for Pydantic schemas."""
 import pytest
-from app.schemas import OrderStatusUpdate, OrderResponse, PaginatedOrdersResponse
-from datetime import datetime
+from pydantic import ValidationError
+
+from app.schemas import OrderResponse, OrderStatusUpdate, PaginatedOrdersResponse
+from datetime import UTC, datetime
 from uuid import uuid4
 
 
@@ -19,7 +21,7 @@ def test_order_status_update_case_insensitive():
 
 def test_order_status_update_invalid():
     """Test OrderStatusUpdate rejects invalid status."""
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError):
         OrderStatusUpdate(status="invalid_status")
 
 
@@ -59,14 +61,15 @@ def test_order_response_from_orm():
         customer_name = "John Doe"
         cake_type = "Chocolate"
         flavour = "vanilla"
-        size_kg = "1.0"
+        size_kg = 1.0
         delivery_date = "2024-04-01"
         delivery_address = "123 Main St"
         special_notes = "Write Happy Birthday"
         status = "new"
-        created_at = datetime.utcnow()
+        created_at = datetime.now(UTC)
     
     # Should not raise
-    response = OrderResponse.from_orm(MockOrder())
+    response = OrderResponse.model_validate(MockOrder())
     assert response.customer_name == "John Doe"
     assert response.status == "new"
+    assert response.size_kg == 1.0

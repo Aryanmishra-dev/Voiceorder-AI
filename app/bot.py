@@ -63,7 +63,7 @@ def is_vague_response(message: str) -> bool:
 
 # ── System prompt ──────────────────────────────────────────────
 SYSTEM_PROMPT = """
-You are a friendly WhatsApp assistant for "Happy bakerss" cake shop.
+You are a friendly WhatsApp assistant for "AI BOT SERVICE" cake shop.
 Your job is to take cake orders from customers over WhatsApp chat.
 
 CONVERSATION FLOW - STRICT SEQUENCE:
