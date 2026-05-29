@@ -1,6 +1,9 @@
 .git
 .gitignore
+.env
 .env.example
+config/.env.development
+config/.env.production
 .venv
 __pycache__
 *.pyc

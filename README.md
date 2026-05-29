@@ -16,10 +16,10 @@ AI-powered WhatsApp ordering service for cake businesses. It handles customer ch
 1. Create your environment file:
 
 ```bash
-cp .env.example .env
+cp config/.env.example config/.env.development
 ```
 
-2. Update required values in `.env`:
+2. Update required values in `config/.env.development`:
 
 ```env
 OPENAI_API_KEY=your-openai-or-openrouter-key
@@ -34,7 +34,7 @@ ADMIN_PASSWORD=replace-with-strong-password
 3. Start services:
 
 ```bash
-docker compose up --build -d
+docker compose -f deployment/docker/docker-compose.yml up --build -d
 ```
 
 4. Verify:
@@ -81,7 +81,19 @@ pytest -q
 python -m pip_audit -r requirements.txt
 ```
 
+## Project Layout
+
+- `app/api/`: HTTP route handlers and request dependencies
+- `app/core/`: configuration, logging, auth helpers, exception handlers
+- `app/db/`: SQLAlchemy base, engine, and sessions
+- `app/models/`: ORM models
+- `app/schemas/`: Pydantic schemas
+- `app/services/`: WhatsApp, LLM, and order business logic
+- `app/middleware/`: middleware registration and configuration
+- `static/`: static assets served at `/static`
+- `deployment/`: Docker and CI assets
+- `docs/`: architecture, API, and setup guides
+
 ## License
 
 MIT
-

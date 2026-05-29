@@ -1,0 +1,74 @@
+services:
+  web:
+    build:
+      context: ../..
+      dockerfile: deployment/docker/Dockerfile
+    container_name: voiceorder_web
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../../config/.env.development
+    environment:
+      - LOG_LEVEL=INFO
+    volumes:
+      - ../../app:/app/app
+      - ../../static:/app/static
+      - ../../logs:/app/logs
+    depends_on:
+      db:
+        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - voiceorder_network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:8000/health', timeout=5).raise_for_status()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  db:
+    image: postgres:16-alpine
+    container_name: voiceorder_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-cakebot}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 512M
+        reservations:
+          cpus: '0.5'
+          memory: 256M
+    networks:
+      - voiceorder_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  voiceorder_network:
+    driver: bridge

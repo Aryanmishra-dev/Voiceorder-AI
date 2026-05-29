@@ -12,6 +12,7 @@ os.environ.setdefault("ADMIN_USERNAME", "test-admin")
 os.environ.setdefault("ADMIN_PASSWORD", "test-admin-password")
 os.environ.setdefault("CORS_ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000")
 os.environ.setdefault("TRUSTED_HOSTS", "localhost,127.0.0.1,testserver")
+os.environ["DEBUG"] = "false"
 # Prevent local shell exports from disabling signature checks and making tests flaky.
 os.environ["ENABLE_WEBHOOK_VALIDATION"] = "true"
 
@@ -19,7 +20,8 @@ import pytest
 import pytest_asyncio
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 
-from app.database import Base, get_db
+from app.db.base import Base
+from app.db.session import get_db
 from app.main import app
 
 

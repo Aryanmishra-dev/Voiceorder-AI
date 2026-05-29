@@ -107,4 +107,4 @@ Thumbs.db
 *.crt
 .env.production
 .env.staging
-
+!config/.env.production
